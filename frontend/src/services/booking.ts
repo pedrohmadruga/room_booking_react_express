@@ -34,3 +34,16 @@ export async function deleteBooking(id: number) {
     const { data } = await api.delete<{ message: string }>(`/bookings/${id}`);
     return data;
 }
+
+export async function createBooking(
+    roomId: number,
+    day: Date,
+    shift: "MORNING" | "AFTERNOON" | "EVENING",
+) {
+    const { data } = await api.post<{ booking: Booking }>("/bookings", {
+        roomId,
+        day: toDateOnly(day),
+        shift,
+    });
+    return data;
+}

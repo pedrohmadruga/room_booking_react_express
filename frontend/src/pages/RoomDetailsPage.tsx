@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import NotFoundPage from "./NotFoundPage";
 import { getRoomById } from "@/services/rooms";
@@ -11,12 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { checkBookingAvailability } from "@/services/booking";
+import { checkBookingAvailability, createBooking } from "@/services/booking";
 
 type Shift = "MORNING" | "AFTERNOON" | "EVENING";
 
 export default function RoomDetailsPage() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const parsedRoomId = Number(id);
 
     const isValidRoomId = Number.isInteger(parsedRoomId) && parsedRoomId > 0;
@@ -31,6 +32,10 @@ export default function RoomDetailsPage() {
     const [availability, setAvailability] = useState<boolean | null>(null);
     const [availabilityError, setAvailabilityError] = useState<string | null>(null);
     const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+    const [reserving, setReserving] = useState(false);
+    const [reserveError, setReserveError] = useState<string | null>(null);
+    const [reserveSuccess, setReserveSuccess] = useState(false);
 
     useEffect(() => {
         if (!isValidRoomId) {
@@ -52,6 +57,8 @@ export default function RoomDetailsPage() {
     useEffect(() => {
         setAvailability(null);
         setAvailabilityError(null);
+        setReserveError(null);
+        setReserveSuccess(false);
     }, [day, shift]);
 
     function handleDaySelect(nextDay: Date | undefined) {
@@ -71,6 +78,8 @@ export default function RoomDetailsPage() {
 
         setCheckingAvailability(true);
         setAvailabilityError(null);
+        setReserveError(null);
+        setReserveSuccess(false);
 
         checkBookingAvailability(parsedRoomId.toString(), day, shift)
             .then((data) => {
@@ -83,6 +92,37 @@ export default function RoomDetailsPage() {
                 );
             })
             .finally(() => setCheckingAvailability(false));
+    }
+
+    async function handleMakeReservation() {
+        if (!day || !shift || availability !== true) return;
+
+        setReserving(true);
+        setReserveError(null);
+        setReserveSuccess(false);
+
+        try {
+            await createBooking(parsedRoomId, day, shift);
+            setReserveSuccess(true);
+            setAvailability(false);
+
+            window.setTimeout(() => {
+                navigate("/bookings");
+            }, 1500);
+        } catch (error: unknown) {
+            const axiosError = error as {
+                response?: { data?: { message?: string }; status?: number };
+            };
+            const message =
+                axiosError.response?.data?.message ??
+                (axiosError.response?.status === 409
+                    ? "This slot was just booked by someone else"
+                    : "Failed to create reservation");
+            setReserveError(message);
+            setAvailability(null);
+        } finally {
+            setReserving(false);
+        }
     }
 
     if (notFound) return <NotFoundPage />;
@@ -205,7 +245,23 @@ export default function RoomDetailsPage() {
                             </div>
                         ) : null}
 
-                        {availability === true ? (
+                        {reserveError ? (
+                            <div className="mt-4 rounded-xl bg-brand px-4 py-3 text-sm text-white shadow-sm">
+                                <p className="font-semibold">Reservation failed</p>
+                                <p className="mt-0.5 text-white/80">{reserveError}</p>
+                            </div>
+                        ) : null}
+
+                        {reserveSuccess ? (
+                            <div className="mt-4 rounded-xl bg-emerald-600 px-4 py-3 text-sm text-white shadow-sm">
+                                <p className="font-semibold">Reservation confirmed</p>
+                                <p className="mt-0.5 text-white/90">
+                                    Redirecting to your bookings...
+                                </p>
+                            </div>
+                        ) : null}
+
+                        {availability === true && !reserveSuccess ? (
                             <div className="mt-4 rounded-xl bg-emerald-600 px-4 py-3 text-sm text-white shadow-sm">
                                 <p className="font-semibold">Available</p>
                                 <p className="mt-0.5 text-white/90">
@@ -214,7 +270,7 @@ export default function RoomDetailsPage() {
                             </div>
                         ) : null}
 
-                        {availability === false ? (
+                        {availability === false && !reserveSuccess ? (
                             <div className="mt-4 rounded-xl bg-red-600 px-4 py-3 text-sm text-white shadow-sm">
                                 <p className="font-semibold">Unavailable</p>
                                 <p className="mt-0.5 text-white/80">
@@ -225,20 +281,28 @@ export default function RoomDetailsPage() {
                         ) : null}
 
                         <div className="mt-auto flex flex-wrap items-center justify-end gap-3 pt-10">
-                            {availability === true ? (
+                            {availability === true && !reserveSuccess ? (
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    className="cursor-pointer border-gray-300 bg-white text-brand hover:bg-gray-50"
+                                    className="cursor-pointer bg-brand px-5 text-white hover:bg-brand-hover"
+                                    onClick={handleMakeReservation}
+                                    disabled={reserving || !day || !shift}
                                 >
-                                    Make Reservation
+                                    {reserving ? "Reserving..." : "Make Reservation"}
                                 </Button>
                             ) : null}
                             <Button
                                 type="button"
-                                className="bg-brand px-5 text-white hover:bg-brand-hover"
+                                variant="outline"
+                                className="border-gray-300 bg-white px-5 text-brand hover:bg-gray-50"
                                 onClick={handleCheckAvailability}
-                                disabled={checkingAvailability || !day || !shift}
+                                disabled={
+                                    checkingAvailability ||
+                                    reserving ||
+                                    reserveSuccess ||
+                                    !day ||
+                                    !shift
+                                }
                             >
                                 {checkingAvailability
                                     ? "Checking..."
