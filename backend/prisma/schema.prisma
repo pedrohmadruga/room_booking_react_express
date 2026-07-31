@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+enum Shift {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  phone     String?
+  cpf       String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isAdmin   Boolean   @default(false)
+  bookings  Booking[]
+  address   Address  @relation(fields: [addressId], references: [id])
+  addressId Int
+
+  @@map("users")
+}
+
+model Room {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  capacity    Int
+  price       Float
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
+
+  @@map("rooms")
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  day DateTime
+  shift Shift
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+
+  @@unique([roomId, day, shift])
+  @@map("bookings")
+}
+
+model Address {
+  id           Int     @id @default(autoincrement())
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  cep          String
+  city         String
+  state        String
+  users        User[]
+
+  @@map("addresses")
+}
