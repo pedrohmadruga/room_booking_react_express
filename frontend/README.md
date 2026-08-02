@@ -1,8 +1,8 @@
 # SpaceHub frontend
 
-React + Vite client for the room booking API.
+React + Vite client for the SpaceHub room booking API (user flows + admin dashboard).
 
-See the [root README](../README.md) for full setup, env vars, and features.
+See the [root README](../README.md) for full setup, env vars, features, and API routes.
 
 ```bash
 npm install
