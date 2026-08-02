@@ -136,9 +136,57 @@ npm run dev
 
 **Frontend:** React 19, React Router 7, Axios, Tailwind CSS 4, shadcn/ui (Base UI), lucide-react, react-day-picker
 
+## Deploy (Supabase + Render + Vercel)
+
+### 1. Supabase (database)
+1. Project Settings → Database → copy the URI (Direct `5432` or Session pooler).
+2. Point `DATABASE_URL` at that URI (encode special characters in the password).
+3. From your machine (with that URL in `backend/.env`):
+
+```bash
+cd backend
+npx prisma migrate deploy
+```
+
+### 2. Render (backend)
+| Field | Value |
+|--------|--------|
+| Root Directory | `backend` |
+| Build Command | `npm install && npm run build` |
+| Start Command | `npm start` |
+
+Environment variables on Render:
+```env
+DATABASE_URL=...supabase connection string...
+JWT_SECRET=...long random string...
+FRONTEND_URL=https://your-app.vercel.app
+NODE_ENV=production
+```
+
+`PORT` is injected by Render. Free tier sleeps after idle; cold start can take ~30–60s.
+
+### 3. Vercel (frontend)
+| Field | Value |
+|--------|--------|
+| Root Directory | `frontend` |
+| Framework | Vite |
+| Build Command | `npm run build` |
+| Output | `dist` |
+
+Environment variable on Vercel:
+```env
+VITE_API_URL=https://your-api.onrender.com/
+```
+
+After the Vercel URL exists, set `FRONTEND_URL` on Render to that origin and redeploy the API (CORS).
+
+### 4. Local CORS helper
+For local + production origins, use `FRONTEND_URL` (comma-separated). See `backend/.env.example`.
+
 ## Notes
 
 - Booking uniqueness: one reservation per `roomId` + `day` + `shift`
 - Day values are stored as UTC date-only; display booking dates with `timeZone: "UTC"` to avoid off-by-one in Brazil
 - Room images are stored under `backend/uploads/rooms/` and served at `/uploads/rooms/...` (upload filenames include a timestamp to avoid collisions)
+- On Render free tier, files written to disk are lost on redeploy — seed/static images are safer until you move to object storage (e.g. Supabase Storage)
 - Admin UI reuses shared layout pieces (`AdminPageHeader`, `StatCard`, `AdminDataPanel`, modals) across Rooms, Users, and Bookings
