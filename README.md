@@ -2,12 +2,34 @@
 
 Full-stack room booking app: users register/login, browse rooms, check availability, create bookings, and manage their reservations. Admins manage rooms, users, and bookings from a dedicated dashboard.
 
+## Live demo
+
+- **Frontend:** https://room-booking-react-express-chi.vercel.app/
+- **Backend / API:** https://room-booking-react-express.onrender.com
+- **Swagger:** https://room-booking-react-express.onrender.com/api-docs
+
+> On Render free tier the API may sleep after idle time; the first request can take ~30–60s.
+
+## Preview
+
+![Home](docs/screenshots/home.png)
+
+![Rooms](docs/screenshots/rooms.png)
+
+![Room booking](docs/screenshots/room_booking.png)
+
+![My bookings](docs/screenshots/my_bookings.png)
+
+![Admin dashboard](docs/screenshots/dashboard.png)
+
 ## Structure
 
 ```text
 room-booking/
   backend/     Express + Prisma (PostgreSQL) + JWT + Multer + Swagger
   frontend/    React + Vite + TypeScript + Tailwind + shadcn/ui
+  docs/
+    screenshots/   README preview images (optional)
 ```
 
 ## Features
@@ -29,7 +51,7 @@ room-booking/
 
 - Node.js 20+ (or compatible with the project’s native modules)
 - npm
-- PostgreSQL running locally (or a remote Postgres instance)
+- PostgreSQL running locally (or a remote Postgres instance such as Supabase)
 
 ## Backend setup
 
@@ -43,6 +65,7 @@ Configure `backend/.env` (example):
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/spacehub?schema=public"
 JWT_SECRET="your-secret"
+FRONTEND_URL="http://localhost:5173"
 ```
 
 > If the password has special characters (e.g. `!`), URL-encode them in `DATABASE_URL`.
@@ -130,12 +153,6 @@ npm run dev
 | `/dashboard/bookings` | Admin | Bookings overview + CRUD |
 | `*` | Public | 404 |
 
-## Tech stack
-
-**Backend:** Express 5, Prisma 7, PostgreSQL, Zod, JWT, bcrypt, Multer, Swagger  
-
-**Frontend:** React 19, React Router 7, Axios, Tailwind CSS 4, shadcn/ui (Base UI), lucide-react, react-day-picker
-
 ## Deploy (Supabase + Render + Vercel)
 
 ### 1. Supabase (database)
@@ -165,7 +182,7 @@ Environment variables on Render (use the **Session pooler** URI, not Direct):
 ```env
 DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=require
 JWT_SECRET=...long random string...
-FRONTEND_URL=https://your-app.vercel.app
+FRONTEND_URL=https://room-booking-react-express-chi.vercel.app
 NODE_ENV=production
 ```
 
@@ -185,13 +202,19 @@ If build still fails with P1001, your Build Command is still reaching the DB —
 
 Environment variable on Vercel:
 ```env
-VITE_API_URL=https://your-api.onrender.com/
+VITE_API_URL=https://room-booking-react-express.onrender.com/
 ```
 
 After the Vercel URL exists, set `FRONTEND_URL` on Render to that origin (no trailing slash) and redeploy the API (CORS).
 
 ### 4. Local CORS helper
 For local + production origins, use `FRONTEND_URL` (comma-separated). See `backend/.env.example`.
+
+## Tech stack
+
+**Backend:** Express 5, Prisma 7, PostgreSQL, Zod, JWT, bcrypt, Multer, Swagger  
+
+**Frontend:** React 19, React Router 7, Axios, Tailwind CSS 4, shadcn/ui (Base UI), lucide-react, react-day-picker
 
 ## Notes
 

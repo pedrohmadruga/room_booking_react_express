@@ -28,9 +28,9 @@ export default function AdminRowActions({ onEdit, onDelete }: AdminRowActionsPro
                 <MoreVertical className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-36 bg-white">
-                <DropdownMenuItem onClick={onEdit} className="text-brand">Editar</DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit} className="text-brand">Edit</DropdownMenuItem>
                 <DropdownMenuItem variant="destructive" onClick={onDelete}>
-                    Deletar
+                    Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
