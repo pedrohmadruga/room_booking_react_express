@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,8 +13,14 @@ const navLinks = [
     { label: "Contact us", href: "#contact" },
 ] as const;
 
+const adminLinks = [
+    { label: "Rooms", to: "/dashboard/rooms" },
+    { label: "Users", to: "/dashboard/users" },
+    { label: "Bookings", to: "/dashboard/bookings" },
+] as const;
+
 type NavbarProps = Readonly<{
-    variant?: "default" | "auth" | "app";
+    variant?: "default" | "auth" | "app" | "admin";
     authLink?: "login" | "register";
 }>;
 
@@ -100,13 +106,55 @@ function UserActions({ className, onLogout }: UserActionsProps) {
     );
 }
 
+type AdminActionsProps = Readonly<{
+    onLogout: () => void;
+    className?: string;
+}>;
+
+function AdminActions({ onLogout, className }: AdminActionsProps) {
+    const { user } = useAuth();
+    const initials =
+        user?.name
+            ?.split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0]?.toUpperCase())
+            .join("") || "AD";
+
+    return (
+        <div className={cn("ml-auto hidden items-center gap-3 md:flex", className)}>
+            <div
+                className="flex size-9 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white"
+                title={user?.name}
+            >
+                {initials}
+            </div>
+            <span className="text-sm font-medium text-brand">Admin</span>
+            <Button
+                type="button"
+                size="lg"
+                className="shrink-0 bg-brand px-6 text-white hover:bg-brand-hover"
+                onClick={onLogout}
+            >
+                Logout
+            </Button>
+        </div>
+    );
+}
+
 type MobileNavProps = Readonly<{
     showHomeLinks: boolean;
+    showAdminLinks?: boolean;
     onClose: () => void;
     onLogout: () => void;
 }>;
 
-function MobileNav({ showHomeLinks, onClose, onLogout }: MobileNavProps) {
+function MobileNav({
+    showHomeLinks,
+    showAdminLinks = false,
+    onClose,
+    onLogout,
+}: MobileNavProps) {
     const { user, isAuthenticated } = useAuth();
 
     return (
@@ -126,13 +174,52 @@ function MobileNav({ showHomeLinks, onClose, onLogout }: MobileNavProps) {
                 </nav>
             ) : null}
 
+            {showAdminLinks ? (
+                <nav className="flex flex-col gap-1" aria-label="Mobile admin">
+                    {adminLinks.map((link) => (
+                        <NavLink
+                            key={link.to}
+                            to={link.to}
+                            onClick={onClose}
+                            className={({ isActive }) =>
+                                cn(
+                                    "rounded-lg px-3 py-2.5 text-sm font-medium",
+                                    isActive
+                                        ? "bg-brand/5 text-brand"
+                                        : "text-brand hover:bg-muted",
+                                )
+                            }
+                        >
+                            {link.label}
+                        </NavLink>
+                    ))}
+                </nav>
+            ) : null}
+
             <div
                 className={cn(
                     "flex flex-col gap-2",
-                    showHomeLinks && "mt-4 border-t border-border pt-4",
+                    (showHomeLinks || showAdminLinks) && "mt-4 border-t border-border pt-4",
                 )}
             >
-                {isAuthenticated ? (
+                {showAdminLinks ? (
+                    <>
+                        <p className="truncate px-1 text-sm text-brand" title={user?.name}>
+                            Admin · {user?.name}
+                        </p>
+                        <Button
+                            type="button"
+                            size="lg"
+                            className="w-full bg-brand text-white hover:bg-brand-hover"
+                            onClick={() => {
+                                onClose();
+                                onLogout();
+                            }}
+                        >
+                            Logout
+                        </Button>
+                    </>
+                ) : isAuthenticated ? (
                     <>
                         <p className="truncate px-1 text-sm text-brand" title={user?.name}>
                             Hi, {user?.name}
@@ -193,7 +280,8 @@ export default function Navbar({ variant = "default", authLink }: NavbarProps) {
     const isAuth = variant === "auth";
     const isApp = variant === "app";
     const isDefault = variant === "default";
-    const showMobileMenu = isDefault || isApp;
+    const isAdmin = variant === "admin";
+    const showMobileMenu = isDefault || isApp || isAdmin;
 
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -207,16 +295,21 @@ export default function Navbar({ variant = "default", authLink }: NavbarProps) {
         <header
             className={cn(
                 "w-full border-b bg-surface text-brand",
-                (isAuth || isApp) ? "shadow-xs" : "shadow-none",
+                (isAuth || isApp || isAdmin) ? "shadow-xs" : "shadow-none",
             )}
         >
             <div className="relative mx-auto flex h-16 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 md:px-10">
                 <Link
-                    to="/"
+                    to={isAdmin ? "/dashboard" : "/"}
                     className="flex shrink-0 items-center gap-2 font-semibold text-brand"
                 >
                     <SpaceHubLogo className="size-7" />
-                    <span>SpaceHub</span>
+                    <span className="flex items-baseline gap-1.5">
+                        SpaceHub
+                        {isAdmin ? (
+                            <span className="text-xs font-medium text-blue-500">Admin</span>
+                        ) : null}
+                    </span>
                 </Link>
 
                 {isDefault ? (
@@ -236,6 +329,30 @@ export default function Navbar({ variant = "default", authLink }: NavbarProps) {
                     </nav>
                 ) : null}
 
+                {isAdmin ? (
+                    <nav
+                        className="absolute left-1/2 hidden h-16 -translate-x-1/2 items-center gap-8 md:flex"
+                        aria-label="Admin"
+                    >
+                        {adminLinks.map((link) => (
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                className={({ isActive }) =>
+                                    cn(
+                                        "flex h-full items-center border-b-2 text-sm font-medium text-brand transition-colors hover:text-brand-hover",
+                                        isActive
+                                            ? "border-brand"
+                                            : "border-transparent",
+                                    )
+                                }
+                            >
+                                {link.label}
+                            </NavLink>
+                        ))}
+                    </nav>
+                ) : null}
+
                 {isAuth && authLink ? (
                     <div className="ml-auto min-w-0">
                         <AuthPrompt authLink={authLink} />
@@ -243,6 +360,7 @@ export default function Navbar({ variant = "default", authLink }: NavbarProps) {
                 ) : null}
 
                 {isDefault || isApp ? <UserActions onLogout={handleLogout} /> : null}
+                {isAdmin ? <AdminActions onLogout={handleLogout} /> : null}
 
                 {showMobileMenu ? (
                     <Button
@@ -263,6 +381,7 @@ export default function Navbar({ variant = "default", authLink }: NavbarProps) {
             {showMobileMenu && mobileOpen ? (
                 <MobileNav
                     showHomeLinks={isDefault}
+                    showAdminLinks={isAdmin}
                     onClose={() => setMobileOpen(false)}
                     onLogout={handleLogout}
                 />

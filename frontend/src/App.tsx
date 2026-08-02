@@ -8,6 +8,9 @@ import RoomsPage from "./pages/RoomsPage";
 import BookingsPage from "./pages/BookingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
+import AdminRoute from "./components/admin/AdminRoute";
+import AdminLayout from "./layout/AdminLayout";
+import HomepageDashboard from "./pages/admin/HomepageDashboard";
 
 function PublicOnlyRoute({ children }: Readonly<{ children: React.ReactNode }>) {
     const { isAuthenticated } = useAuth();
@@ -19,12 +22,21 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
+                {/* public routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/rooms" element={<ProtectedRoute><RoomsPage /></ProtectedRoute>} />
                 <Route path="/rooms/:id" element={<ProtectedRoute><RoomDetailsPage /></ProtectedRoute>} />
                 <Route path="/bookings" element={<ProtectedRoute><BookingsPage /></ProtectedRoute>} />
+                
+                {/* admin routes */}
+                <Route path="/dashboard" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                    <Route index element={<HomepageDashboard />} />
+                    <Route path="rooms" element={<HomepageDashboard />} />
+                    <Route path="users" element={<HomepageDashboard />} />
+                    <Route path="bookings" element={<HomepageDashboard />} />
+                </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>

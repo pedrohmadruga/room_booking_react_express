@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 type PageLayoutProps = Readonly<{
     children: React.ReactNode;
-    variant?: "default" | "auth" | "app";
+    variant?: "default" | "auth" | "app" | "admin";
     authLink?: "login" | "register";
     mainClassName?: string;
 }>;
