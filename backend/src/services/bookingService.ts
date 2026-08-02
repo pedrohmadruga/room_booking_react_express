@@ -55,12 +55,29 @@ export async function getBookingById(id: number, user: JwtPayload) {
     return booking;
 }
 
-export async function createBooking(input: CreateBookingInput, userId: number) {
-    const { roomId, day, shift } = input;
+export async function createBooking(input: CreateBookingInput, user: JwtPayload) {
+    const { roomId, day, shift, userId: requestedUserId } = input;
+
+    const targetUserId =
+        user.isAdmin && requestedUserId !== undefined
+            ? requestedUserId
+            : user.userId;
+
+    if (requestedUserId !== undefined && !user.isAdmin) {
+        throw new AppError(403, "Forbidden");
+    }
 
     const room = await prisma.room.findUnique({ where: { id: roomId } });
     if (!room) {
         throw new AppError(404, "Room not found");
+    }
+
+    const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true },
+    });
+    if (!targetUser) {
+        throw new AppError(404, "User not found");
     }
 
     const bookingDay = parseBookingDay(day);
@@ -78,8 +95,9 @@ export async function createBooking(input: CreateBookingInput, userId: number) {
                 roomId,
                 day: bookingDay,
                 shift,
-                userId,
+                userId: targetUserId,
             },
+            include: bookingIncludeFull,
         });
     } catch (error) {
         handleUniqueConflict(error);
@@ -118,6 +136,7 @@ export async function updateBooking(
         return await prisma.booking.update({
             where: { id },
             data: prepared.data,
+            include: bookingIncludeFull,
         });
     } catch (error) {
         handleUniqueConflict(error);

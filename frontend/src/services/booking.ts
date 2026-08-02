@@ -1,5 +1,12 @@
 import api from "./api";
-import type { Booking } from "@/types/booking";
+import type { Booking, BookingShift } from "@/types/booking";
+
+export type BookingInput = {
+    roomId: number;
+    day: string;
+    shift: BookingShift;
+    userId?: number;
+};
 
 export async function getUserBookings() {
     const { data } = await api.get<{ bookings: Booking[] }>(`/bookings`);
@@ -16,7 +23,7 @@ function toDateOnly(day: Date): string {
 export async function checkBookingAvailability(
     roomId: string,
     day: Date,
-    shift: "MORNING" | "AFTERNOON" | "EVENING",
+    shift: BookingShift,
 ) {
     const { data } = await api.get<{ available: boolean }>(
         `/rooms/${roomId}/availability`,
@@ -38,12 +45,22 @@ export async function deleteBooking(id: number) {
 export async function createBooking(
     roomId: number,
     day: Date,
-    shift: "MORNING" | "AFTERNOON" | "EVENING",
+    shift: BookingShift,
 ) {
     const { data } = await api.post<{ booking: Booking }>("/bookings", {
         roomId,
         day: toDateOnly(day),
         shift,
     });
+    return data;
+}
+
+export async function createAdminBooking(input: BookingInput) {
+    const { data } = await api.post<{ booking: Booking }>("/bookings", input);
+    return data;
+}
+
+export async function updateBooking(id: number, input: Omit<BookingInput, "userId">) {
+    const { data } = await api.put<{ booking: Booking }>(`/bookings/${id}`, input);
     return data;
 }

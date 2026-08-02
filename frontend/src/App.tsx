@@ -13,6 +13,7 @@ import AdminLayout from "./layout/AdminLayout";
 import HomepageDashboard from "./pages/admin/HomepageDashboard";
 import RoomsDashboardPage from "./pages/admin/RoomsDashboardPage";
 import UsersDashboardPage from "./pages/admin/UsersDashboardPage";
+import BookingsDashboardPage from "./pages/admin/BookingsDashboardPage";
 
 function PublicOnlyRoute({ children }: Readonly<{ children: React.ReactNode }>) {
     const { isAuthenticated } = useAuth();
@@ -37,7 +38,7 @@ function App() {
                     <Route index element={<HomepageDashboard />} />
                     <Route path="rooms" element={<RoomsDashboardPage />} />
                     <Route path="users" element={<UsersDashboardPage />} />
-                    <Route path="bookings" element={<HomepageDashboard />} />
+                    <Route path="bookings" element={<BookingsDashboardPage />} />
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />

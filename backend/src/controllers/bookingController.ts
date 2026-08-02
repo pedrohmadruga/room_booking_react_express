@@ -35,7 +35,7 @@ export const bookingController = {
 
         const booking = await bookingService.createBooking(
             parsed.data,
-            req.user!.userId,
+            req.user!,
         );
         return res.status(201).json({ booking });
     }),

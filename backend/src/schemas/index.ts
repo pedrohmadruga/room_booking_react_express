@@ -65,6 +65,7 @@ export const createBookingSchema = z.object({
     roomId: z.coerce.number().int().positive(),
     day: z.union([z.string().min(1), z.date()]),
     shift: z.enum(Shift),
+    userId: z.coerce.number().int().positive().optional(),
 });
 
 export const updateBookingSchema = z.object({
