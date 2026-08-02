@@ -2,16 +2,30 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/comp
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { FALLBACK_ROOM_IMAGE, resolveRoomImageUrl } from "@/lib/roomImage";
-import type { Room } from "@/types/room";
 import { Link } from "react-router-dom";
 
-type RoomCardProps = Pick<Room, "id" | "name" | "description" | "capacity" | "imageUrl"> & {
+type RoomCardProps = Readonly<{
+    id?: number;
+    name: string;
+    description: string | null;
+    capacity?: number;
+    imageUrl: string | null;
     className?: string;
     showBookButton?: boolean;
     showCapacity?: boolean;
-};
+}>;
 
-export default function RoomCard({ id, name, description, capacity, imageUrl, className, showBookButton = false, showCapacity = false }: RoomCardProps) {
+export default function RoomCard(props: RoomCardProps) {
+    const {
+        id,
+        name,
+        description,
+        capacity,
+        imageUrl,
+        className,
+        showBookButton = false,
+        showCapacity = false,
+    } = props;
     const imageSrc = resolveRoomImageUrl(imageUrl);
 
     return (
@@ -31,16 +45,22 @@ export default function RoomCard({ id, name, description, capacity, imageUrl, cl
             />
             <CardHeader className="flex-1">
                 <CardTitle className="font-semibold">{name}</CardTitle>
-                {showCapacity && (
-                    <CardDescription className="text-gray-500 font-light text-xs mb-2">Up to {capacity} people</CardDescription>
-                )}
-                <CardDescription className="text-brand/80 font-light text-sm">{description}</CardDescription>
+                {showCapacity && capacity != null ? (
+                    <CardDescription className="mb-2 text-xs font-light text-gray-500">
+                        Up to {capacity} people
+                    </CardDescription>
+                ) : null}
+                <CardDescription className="text-sm font-light text-brand/80">
+                    {description}
+                </CardDescription>
             </CardHeader>
-            {showBookButton && (
+            {showBookButton && id != null ? (
                 <CardFooter className="mt-auto border-0 bg-transparent">
-                    <Button className="text-sm w-full items-right bg-brand text-white hover:bg-brand/90 cursor-pointer"><Link to={`/rooms/${id}`}>View and Book</Link></Button>
+                    <Button className="w-full cursor-pointer items-right bg-brand text-sm text-white hover:bg-brand/90">
+                        <Link to={`/rooms/${id}`}>View and Book</Link>
+                    </Button>
                 </CardFooter>
-            )}
+            ) : null}
         </Card>
     );
 }

@@ -42,6 +42,7 @@ export default function RoomsPreview() {
                 {previewRooms.map((room) => (
                     <RoomCard
                         key={room.id}
+                        id={room.id}
                         name={room.name}
                         description={room.description}
                         imageUrl={room.imageUrl}
