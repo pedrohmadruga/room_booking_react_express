@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -157,6 +157,82 @@ function MobileNav({
 }: MobileNavProps) {
     const { user, isAuthenticated } = useAuth();
 
+    function handleLogoutClick() {
+        onClose();
+        onLogout();
+    }
+
+    let accountSection: ReactNode;
+
+    if (showAdminLinks) {
+        accountSection = (
+            <>
+                <p className="truncate px-1 text-sm text-brand" title={user?.name}>
+                    Admin · {user?.name}
+                </p>
+                <Button
+                    type="button"
+                    size="lg"
+                    className="w-full bg-brand text-white hover:bg-brand-hover"
+                    onClick={handleLogoutClick}
+                >
+                    Logout
+                </Button>
+            </>
+        );
+    } else if (isAuthenticated) {
+        accountSection = (
+            <>
+                <p className="truncate px-1 text-sm text-brand" title={user?.name}>
+                    Hi, {user?.name}
+                </p>
+                <Link
+                    to="/bookings"
+                    onClick={onClose}
+                    className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "w-full border border-brand text-brand",
+                    )}
+                >
+                    My bookings
+                </Link>
+                <Button
+                    type="button"
+                    size="lg"
+                    className="w-full bg-brand text-white hover:bg-brand-hover"
+                    onClick={handleLogoutClick}
+                >
+                    Logout
+                </Button>
+            </>
+        );
+    } else {
+        accountSection = (
+            <>
+                <Link
+                    to="/login"
+                    onClick={onClose}
+                    className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "w-full border border-brand text-brand shadow-xl",
+                    )}
+                >
+                    Login
+                </Link>
+                <Link
+                    to="/register"
+                    onClick={onClose}
+                    className={cn(
+                        buttonVariants({ size: "lg" }),
+                        "w-full bg-brand text-white hover:bg-brand-hover",
+                    )}
+                >
+                    Sign up
+                </Link>
+            </>
+        );
+    }
+
     return (
         <div id="mobile-nav" className="border-t border-border bg-surface px-4 py-4 md:hidden">
             {showHomeLinks ? (
@@ -202,74 +278,7 @@ function MobileNav({
                     (showHomeLinks || showAdminLinks) && "mt-4 border-t border-border pt-4",
                 )}
             >
-                {showAdminLinks ? (
-                    <>
-                        <p className="truncate px-1 text-sm text-brand" title={user?.name}>
-                            Admin · {user?.name}
-                        </p>
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="w-full bg-brand text-white hover:bg-brand-hover"
-                            onClick={() => {
-                                onClose();
-                                onLogout();
-                            }}
-                        >
-                            Logout
-                        </Button>
-                    </>
-                ) : isAuthenticated ? (
-                    <>
-                        <p className="truncate px-1 text-sm text-brand" title={user?.name}>
-                            Hi, {user?.name}
-                        </p>
-                        <Link
-                            to="/bookings"
-                            onClick={onClose}
-                            className={cn(
-                                buttonVariants({ variant: "outline" }),
-                                "w-full border border-brand text-brand",
-                            )}
-                        >
-                            My bookings
-                        </Link>
-                        <Button
-                            type="button"
-                            size="lg"
-                            className="w-full bg-brand text-white hover:bg-brand-hover"
-                            onClick={() => {
-                                onClose();
-                                onLogout();
-                            }}
-                        >
-                            Logout
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Link
-                            to="/login"
-                            onClick={onClose}
-                            className={cn(
-                                buttonVariants({ variant: "outline" }),
-                                "w-full border border-brand text-brand shadow-xl",
-                            )}
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            to="/register"
-                            onClick={onClose}
-                            className={cn(
-                                buttonVariants({ size: "lg" }),
-                                "w-full bg-brand text-white hover:bg-brand-hover",
-                            )}
-                        >
-                            Sign up
-                        </Link>
-                    </>
-                )}
+                {accountSection}
             </div>
         </div>
     );
