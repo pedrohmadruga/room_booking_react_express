@@ -139,9 +139,15 @@ npm run dev
 ## Deploy (Supabase + Render + Vercel)
 
 ### 1. Supabase (database)
-1. Project Settings → Database → copy the URI (Direct `5432` or Session pooler).
-2. Point `DATABASE_URL` at that URI (encode special characters in the password).
-3. From your machine (with that URL in `backend/.env`):
+1. Project Settings → Database → **Connection string** / Connect.
+2. Locally, Direct (`db.<ref>.supabase.co:5432`) often works.
+3. **On Render, Direct usually fails with P1001** (IPv6). Use **Session pooler** instead:
+   - Host: `aws-0-<region>.pooler.supabase.com`
+   - Port: `5432`
+   - User: `postgres.<project-ref>` (not only `postgres`)
+   - Add `?sslmode=require`
+4. Also check **Database → Network Restrictions**: allow all (or Render) for the free demo.
+5. From your machine (Direct URL in `backend/.env` is fine for this step):
 
 ```bash
 cd backend
@@ -155,15 +161,17 @@ npx prisma migrate deploy
 | Build Command | `npm install && npm run build` |
 | Start Command | `npm start` |
 
-Environment variables on Render:
+Environment variables on Render (use the **Session pooler** URI, not Direct):
 ```env
-DATABASE_URL=...supabase connection string...
+DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=require
 JWT_SECRET=...long random string...
 FRONTEND_URL=https://your-app.vercel.app
 NODE_ENV=production
 ```
 
 `PORT` is injected by Render. Free tier sleeps after idle; cold start can take ~30–60s.
+
+If build still fails with P1001, your Build Command is still reaching the DB — use Build = `npm install && npx prisma generate` only; migrations run on `npm start`.
 
 ### 3. Vercel (frontend)
 | Field | Value |
