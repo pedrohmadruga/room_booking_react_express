@@ -46,12 +46,19 @@ export const roomController = {
     }),
 
     create: handleController(async (req: Request, res: Response) => {
-        const parsed = parseWithZod(createRoomSchema, req.body);
+        const parsed = parseWithZod(createRoomSchema, req.body ?? {});
         if (!parsed.ok) {
             return sendValidationError(res, parsed.error);
         }
 
-        const result = await roomService.createRoom(parsed.data);
+        const imageUrl = req.file
+            ? `/uploads/rooms/${req.file.filename}`
+            : undefined;
+
+        const result = await roomService.createRoom({
+            ...parsed.data,
+            ...(imageUrl ? { imageUrl } : {}),
+        });
         return res.status(201).json(result);
     }),
 
@@ -66,10 +73,14 @@ export const roomController = {
             return sendValidationError(res, parsedBody.error);
         }
 
-        const result = await roomService.updateRoom(
-            parsedParams.data.id,
-            parsedBody.data,
-        );
+        const imageUrl = req.file
+            ? `/uploads/rooms/${req.file.filename}`
+            : undefined;
+
+        const result = await roomService.updateRoom(parsedParams.data.id, {
+            ...parsedBody.data,
+            ...(imageUrl ? { imageUrl } : {}),
+        });
         return res.status(200).json(result);
     }),
 

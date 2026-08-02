@@ -1,18 +1,23 @@
-import { Plus, Building2, Users, } from "lucide-react";
+import { Plus, Building2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { StatsGrid } from "@/components/admin/StatsGrid";
 import StatCard from "@/components/admin/StatCard";
 import { useEffect, useState } from "react";
 import type { Room } from "@/types/room";
-import { getRooms } from "@/services/rooms";
+import { deleteRoom, getRooms } from "@/services/rooms";
 import AdminDataPanel from "@/components/admin/AdminDataPanel";
 import { resolveRoomImageUrl } from "@/lib/roomImage";
 import AdminRowActions from "@/components/admin/AdminRowActions";
+import RoomFormModal from "@/components/admin/RoomFormModal";
+import ConfirmDeleteModal from "@/components/admin/ConfirmDeleteModal";
 
 export default function RoomsDashboardPage() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
+    const [formOpen, setFormOpen] = useState(false);
+    const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+    const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
 
     useEffect(() => {
         getRooms()
@@ -25,6 +30,34 @@ export default function RoomsDashboardPage() {
     const totalRooms = rooms.length;
     const totalCapacity = rooms.reduce((sum, room) => sum + room.capacity, 0);
 
+    function openCreateModal() {
+        setEditingRoom(null);
+        setFormOpen(true);
+    }
+
+    function openEditModal(room: Room) {
+        setEditingRoom(room);
+        setFormOpen(true);
+    }
+
+    function handleRoomSaved(savedRoom: Room) {
+        setRooms((prev) => {
+            const exists = prev.some((room) => room.id === savedRoom.id);
+            if (exists) {
+                return prev.map((room) =>
+                    room.id === savedRoom.id ? savedRoom : room,
+                );
+            }
+            return [savedRoom, ...prev];
+        });
+    }
+
+    async function handleDeleteRoom() {
+        if (!roomToDelete) return;
+        await deleteRoom(roomToDelete.id);
+        setRooms((prev) => prev.filter((room) => room.id !== roomToDelete.id));
+    }
+
     if (loading) {
         return <p className="text-sm text-slate-500">Loading...</p>;
     }
@@ -36,8 +69,10 @@ export default function RoomsDashboardPage() {
                 description="Manage all rooms in your space. Add, edit or remove rooms."
                 action={
                     <Button
+                        type="button"
                         size="lg"
                         className="gap-2 bg-brand px-5 text-white hover:bg-brand-hover"
+                        onClick={openCreateModal}
                     >
                         <Plus className="size-4" />
                         Add Room
@@ -69,7 +104,7 @@ export default function RoomsDashboardPage() {
                             <th className="w-24 px-6 py-3.5 font-medium" />
                             <th className="px-6 py-3.5 font-medium">Room Name</th>
                             <th className="px-6 py-3.5 font-medium">Capacity</th>
-                            <th className="px-6 py-3.5 font-medium">Price (per hour)</th>
+                            <th className="px-6 py-3.5 font-medium">Price</th>
                             <th className="px-6 py-3.5 font-medium">Description</th>
                             <th className="w-14 px-6 py-3.5 font-medium" />
                         </tr>
@@ -102,13 +137,37 @@ export default function RoomsDashboardPage() {
                                     <p className="line-clamp-2">{room.description}</p>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <AdminRowActions />
+                                    <AdminRowActions
+                                        onEdit={() => openEditModal(room)}
+                                        onDelete={() => setRoomToDelete(room)}
+                                    />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </AdminDataPanel>
+
+            <RoomFormModal
+                open={formOpen}
+                onOpenChange={setFormOpen}
+                room={editingRoom}
+                onSaved={handleRoomSaved}
+            />
+
+            <ConfirmDeleteModal
+                open={Boolean(roomToDelete)}
+                onOpenChange={(open) => {
+                    if (!open) setRoomToDelete(null);
+                }}
+                title={
+                    roomToDelete
+                        ? `Delete ${roomToDelete.name}?`
+                        : "Delete room?"
+                }
+                description="This action cannot be undone. Bookings linked to this room may also be affected."
+                onConfirm={handleDeleteRoom}
+            />
         </>
     );
 }

@@ -50,6 +50,7 @@ export const createRoomSchema = z.object({
     description: z.string().trim().optional().nullable(),
     capacity: z.coerce.number().int().nonnegative(),
     price: z.coerce.number().nonnegative(),
+    imageUrl: z.string().trim().min(1).optional().nullable(),
 });
 
 export const updateRoomSchema = z.object({
@@ -57,6 +58,7 @@ export const updateRoomSchema = z.object({
     description: z.string().trim().optional().nullable(),
     capacity: z.coerce.number().int().nonnegative().optional(),
     price: z.coerce.number().nonnegative().optional(),
+    imageUrl: z.string().trim().min(1).optional().nullable(),
 });
 
 export const createBookingSchema = z.object({

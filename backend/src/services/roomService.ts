@@ -15,7 +15,7 @@ export async function getRoomById(id: number) {
 }
 
 export async function createRoom(input: CreateRoomInput) {
-    const { name, description, capacity, price } = input;
+    const { name, description, capacity, price, imageUrl } = input;
 
     const room = await prisma.room.create({
         data: {
@@ -23,6 +23,7 @@ export async function createRoom(input: CreateRoomInput) {
             description: description?.trim() || null,
             capacity,
             price,
+            imageUrl: imageUrl?.trim() || null,
         },
     });
 
@@ -35,18 +36,20 @@ export async function updateRoom(id: number, body: UpdateRoomInput) {
         throw new AppError(404, "Room not found");
     }
 
-    const { name, description, capacity, price } = body;
+    const { name, description, capacity, price, imageUrl } = body;
     const data: {
         name?: string;
         description?: string | null;
         capacity?: number;
         price?: number;
+        imageUrl?: string | null;
     } = {};
 
     if (name !== undefined) data.name = name;
     if (description !== undefined) data.description = description?.trim() || null;
     if (capacity !== undefined) data.capacity = capacity;
     if (price !== undefined) data.price = price;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl?.trim() || null;
 
     const room = await prisma.room.update({
         where: { id },
