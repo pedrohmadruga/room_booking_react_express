@@ -181,12 +181,14 @@ If build still fails with P1001, your Build Command is still reaching the DB —
 | Build Command | `npm run build` |
 | Output | `dist` |
 
+`frontend/vercel.json` already rewrites all routes to `index.html` (required for React Router — without it, `/register`, `/login`, etc. return 404 on refresh).
+
 Environment variable on Vercel:
 ```env
 VITE_API_URL=https://your-api.onrender.com/
 ```
 
-After the Vercel URL exists, set `FRONTEND_URL` on Render to that origin and redeploy the API (CORS).
+After the Vercel URL exists, set `FRONTEND_URL` on Render to that origin (no trailing slash) and redeploy the API (CORS).
 
 ### 4. Local CORS helper
 For local + production origins, use `FRONTEND_URL` (comma-separated). See `backend/.env.example`.
