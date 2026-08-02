@@ -11,6 +11,7 @@ import RoomDetailsPage from "./pages/RoomDetailsPage";
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./layout/AdminLayout";
 import HomepageDashboard from "./pages/admin/HomepageDashboard";
+import RoomsDashboardPage from "./pages/admin/RoomsDashboardPage";
 
 function PublicOnlyRoute({ children }: Readonly<{ children: React.ReactNode }>) {
     const { isAuthenticated } = useAuth();
@@ -33,7 +34,7 @@ function App() {
                 {/* admin routes */}
                 <Route path="/dashboard" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                     <Route index element={<HomepageDashboard />} />
-                    <Route path="rooms" element={<HomepageDashboard />} />
+                    <Route path="rooms" element={<RoomsDashboardPage />} />
                     <Route path="users" element={<HomepageDashboard />} />
                     <Route path="bookings" element={<HomepageDashboard />} />
                 </Route>

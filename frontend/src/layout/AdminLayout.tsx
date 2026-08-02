@@ -5,7 +5,7 @@ export default function AdminLayout() {
     return (
         <PageLayout
             variant="admin"
-            mainClassName="mx-auto w-full max-w-7xl bg-gray-50/80 px-4 py-8 md:px-8"
+            mainClassName="mx-auto w-full max-w-7xl bg-slate-50 px-4 py-8 md:px-8"
         >
             <Outlet />
         </PageLayout>
