@@ -69,10 +69,10 @@ function UserActions({ className, onLogout }: UserActionsProps) {
                         Hi, {user?.name}
                     </span>
                     <Link
-                        to="/bookings"
+                        to={user?.isAdmin ? "/dashboard" : "/bookings"}
                         className="shrink-0 text-sm text-brand hover:text-blue-500"
                     >
-                        My bookings
+                        {user?.isAdmin ? "Dashboard" : "My bookings"}
                     </Link>
                     <Button
                         type="button"
@@ -187,14 +187,14 @@ function MobileNav({
                     Hi, {user?.name}
                 </p>
                 <Link
-                    to="/bookings"
+                    to={user?.isAdmin ? "/dashboard" : "/bookings"}
                     onClick={onClose}
                     className={cn(
                         buttonVariants({ variant: "outline" }),
                         "w-full border border-brand text-brand",
                     )}
                 >
-                    My bookings
+                    {user?.isAdmin ? "Dashboard" : "My bookings"}
                 </Link>
                 <Button
                     type="button"
